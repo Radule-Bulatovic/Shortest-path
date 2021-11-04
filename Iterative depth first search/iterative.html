@@ -17,24 +17,24 @@
 
 <body>
     <div class="container pt-5">
-        <h1 class="text-center">Dijkstra alogritam</h1>
+        <h1 class="text-center">Iterative Depth first search</h1>
         <div class="mt-5 row text-center">
             <div class="offset-3 col-4">
                 <div class="row">
                     <div class="col-4 px-1">
-                        <input id="generate" type="text" class="form-control" placeholder="Broj tacaka">
+                        <input id="generate" type="number" min="0" class="form-control" placeholder="Nodes" >
                     </div>
                     <div class="col-4 px-1">
                         <input id="start" type="text" class="form-control" placeholder="Start">
                     </div>
                     <div class="col-4 px-1">
-                        <input id="end" type="text" class="form-control" placeholder="Cilj">
+                        <input id="end" type="text" class="form-control" placeholder="Finish">
                     </div>
                 </div>
             </div>
             <div class="col-3">
-                <button onclick="draw()" class="btn btn-outline-success">Generisi</button>
-                <button onclick="putanja()" class="btn btn-outline-primary">Odredi putanju</button>
+                <button onclick="draw()" class="btn btn-outline-success">Generate</button>
+                <button onclick="path()" class="btn btn-outline-primary">Find path</button>
             </div>
         </div>
         <div class="mt-3">
