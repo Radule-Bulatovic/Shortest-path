@@ -9,9 +9,17 @@
 //     .
 //     .
 // ]
-function formatData() {
+
+function log(str) {
+    let logging = true;
+    if (logging) {
+        console.log(JSON.parse(JSON.stringify(str)));
+    }
+}
+
+function formatData(edges) {
     let newArr = new Array();
-    nodeNumber = parseInt(document.querySelector("#generate").value);
+    let nodeNumber = parseInt(document.querySelector("#generate").value);
     for (let i = 0; i < nodeNumber; i++) {
         let temp = edges.filter((e) => e.from == i);
         newArr[i] = new Array(nodeNumber);
@@ -25,7 +33,7 @@ function formatData() {
             if (newArr[i][j] != 0) {
                 newArr[j][i] = newArr[i][j];
             }
-            if(i == j){
+            if (i == j) {
                 newArr[i][j] = 0;
             }
         }
@@ -33,40 +41,22 @@ function formatData() {
     return newArr
 }
 
-// Generisanje nasumicnog broja u odredjenom opsegu
-function between(min, max) {
-    return Math.floor(
-        Math.random() * (max - min + 1) + min
-    )
-}
 
-//Oznaci cvor sa id-jem
-function markNode(ID) {
-    graphNodes.update({ id: ID, color: { background: "red" } })
-}
-
-//Oznaci granu izmedju dva cvora
-function markEdge(from, to) {
-    let edge = edges.find((e) => ((e.from == from) && (e.to == to)) || ((e.from == to) && (e.to == from)));
-    graphEdges.update({ from: edge.from, to: edge.to, color: { color: "red" } })
-    graphEdges.update({ from: edge.from, to: edge.to, width: 3 })
-    // graphEdges.update({from: to, to: from, color: "red"})
-    // graphEdges.update({from: to, to: from, width: 3})
-}
-
-//Ukloni oznaku sa cvora sa id-jem;
-function unmarkAll(ID) {
-    graphNodes.update({ id: ID, color: { background: "#97C2FC" } })
-}
 
 // Funkcija za generisanje nasumicnog grafika
 function draw() {
 
-    brojTacaka = document.querySelector("#generate").value;
-    nodes = new Array();
-    edges = new Array();
-    var temp = 0;
+    // Generisanje nasumicnog broja u odredjenom opsegu
+    const between = (min, max) => {
+        return Math.floor(
+            Math.random() * (max - min + 1) + min
+        )
+    }
 
+    let brojTacaka = document.querySelector("#generate").value;
+    let nodes = new Array();
+    edges = new Array();
+    let temp = 0;
     for (var i = 0; i < brojTacaka; i++) {
         nodes[i] = { id: i, label: i.toString() };
         for (var i1 = 0; i1 < between(1, brojTacaka - 1); i1++) {
@@ -82,12 +72,12 @@ function draw() {
     // Prikazivanje grafika
     graphNodes = new vis.DataSet(nodes);
     graphEdges = new vis.DataSet(edges);
-    var container = document.getElementById("mynetwork");
-    var data = {
+    let container = document.getElementById("mynetwork");
+    let data = {
         nodes: graphNodes,
         edges: graphEdges,
     };
-    var options = {
+    let options = {
         physics: {
             enabled: false,
         }
@@ -96,88 +86,79 @@ function draw() {
 }
 
 
-//Dodaje djecu cvorova na poslednjem nivou
-function dodajDjecu() {
-    dubina++;
-    trenutniCvorovi[dubina] = new Object();
-    let prosliNivo = Object.keys(trenutniCvorovi[dubina - 1]);
-    for (i = 0; i < prosliNivo.length; i++) {
-        let djeca = Object.keys(problem[prosliNivo[i]]);
-        for (let i = 0; i < djeca.length; i++) {
-            trenutniCvorovi[dubina][djeca[i]] = 1;
-        }
-    }
-}
-
-//Pretraga cilja u cvorovima koje smo do sada prosli
-function trazi() {
-    for (let nivo in trenutniCvorovi) {
-        console.log(`Trazim na nivou ${nivo}:`);
-        console.log(`Na nivou ${nivo} se nalazi cvor`);
-        console.log(trenutniCvorovi[nivo]);
-        for (let cvor in trenutniCvorovi[nivo]) {
-            console.log(`Ispitujem da li je cilj: ${cilj} == cvor ${cvor}`);
-            if (cvor == cilj) {
-                console.log(`Rjesenje pronadjeno na dubini ${nivo}!`);
-                return true;
-            } else {
-                console.log("NOT FOUND ");
-            }
-        }
-    }
-}
-
-function dodajNivo() {
-    let prosliNivo = Object.keys(trenutniCvorovi[dubina - 1]);
-    console.log(prosliNivo);
-    for (i = 0; i < prosliNivo.length; i++) {
-        trenutniNivo = problem[prosliNivo[i]];
-        console.log(trenutniNivo);
-        for (j = 0; j < trenutniNivo.length; j++) {
-            console.log( trenutniNivo[j] + " razlicito od 0");
-            console.log(trenutniNivo[j] != 0);
-            console.log( j + " nije u nizu " + obradjeniCvorovi);
-            console.log(!(obradjeniCvorovi.includes(j)));
-            if (trenutniNivo[j] != 0 && !(prosliNivo.includes(j.toString()) && !(obradjeniCvorovi.includes(j)) )) { 
-                trenutniCvorovi[dubina][j] = trenutniNivo[j];
-                obradjeniCvorovi.push(j);
-            }
-        }
-    }
-}
-
-let cilj;
-let start;
-
-let trenutniCvorovi = {};
-let obradjeniCvorovi = [];
-let dubina = 0;
 
 function path() {
 
-    cilj = document.getElementById("end").value || brojTacaka - 1;
-    start = parseInt(document.getElementById("start").value) || 0;
-    problem = formatData(edges);
-    console.log(problem);
-    return
-    // setTimeout(()=>{markNode(0)}, 2000);
-    // setTimeout(()=>{markEdge(0,1)}, 2500);
-    // setTimeout(()=>{markNode(1)}, 3000);
-    // setTimeout(()=>{markEdge(0,2)}, 2000);
-    // setTimeout(()=>{markNode(2)}, 4000);
-    // setTimeout(()=>{markNode(3)}, 5000);
-    trenutniCvorovi[dubina] = new Object();
-    trenutniCvorovi[dubina][start] = 0;
-    obradjeniCvorovi.push(start);
-    let i = 0;
-    while (true) {
-        if(trazi()){
-            break;
-        }
-        dubina++;
-        trenutniCvorovi[dubina] = new Object();
-        dodajNivo();
+    //Oznaci cvor sa id-jem
+    const markNode = (id) => {
+        graphNodes.update({ id: id, color: { background: "red" } })
     }
-    console.log(trenutniCvorovi);
+
+    //Oznaci granu izmedju dva cvora
+    const markEdge = (from, to) => {
+        let edge = edges.find((e) => ((e.from == from) && (e.to == to)) || ((e.from == to) && (e.to == from)));
+        graphEdges.update({ from: edge.from, to: edge.to, color: { color: "red" } })
+        graphEdges.update({ from: edge.from, to: edge.to, width: 3 })
+        // graphEdges.update({from: to, to: from, color: "red"})
+        // graphEdges.update({from: to, to: from, width: 3})
+    }
+
+    //Ukloni oznaku sa cvora sa id-jem;
+    const unmarkAll = (id) => {
+        graphNodes.update({ id: id, color: { background: "#97C2FC" } })
+    }
+
+    const cilj = parseInt(document.getElementById("end").value) || document.querySelector("#generate").value - 1;
+    const start = parseInt(document.getElementById("start").value) || 0;
+    const problem = formatData(edges);
+
+    console.log(problem);
+
+    const traziNaNivou = (maxNivo) => {
+        let prosliNivo = [[]];
+        let nivoi = {0: {}};
+        let procesuirani = [];
+        for (let i = 0; i < problem[0].length; i++) {
+            if (!problem[0][i]) {
+                continue;
+            }
+            nivoi[0][i] = problem[0][i];
+            prosliNivo[0].push(i);
+        }
+        procesuirani.push(0);
+        log(`prosliNivo su: ${prosliNivo}`);
+        log("Stanje nivoa:");
+        log(nivoi);
+        for (let nivo = 1; nivo < maxNivo; nivo++) {
+            log(`Na nivou: ${nivo}`);
+            nivoi[nivo] = {};
+            log(`Iteriram kroz prosli nivo: ${prosliNivo[nivo - 1]}`);
+            prosliNivo[nivo] = [];
+            if (nivo == problem.length) {
+                return nivoi;
+            }
+            for (let i = 0; i < prosliNivo[nivo - 1].length; i++) {
+                log(`Iteriram kroz matricu susjedstva na indeksu ${prosliNivo[nivo - 1][i]} : ${problem[prosliNivo[nivo - 1][i]]}`);
+                for (let j = 0; j < problem[prosliNivo[nivo - 1][i]].length; j++) {
+                    log(`Da li je 0 == ${problem[prosliNivo[nivo - 1][i]][j]} ili niz[${procesuirani}] sadrzi element ${j}`);
+                    if (!problem[prosliNivo[nivo - 1][i]][j] || procesuirani.includes(j)) {
+                        log(`Da`);
+                        continue;
+                    }
+                    nivoi[nivo][j] = problem[prosliNivo[nivo - 1][i]][j];
+                    log(`Ne`);
+                    log(`Dodajem ${problem[prosliNivo[nivo - 1][i]][j]} u objekat nivoa ${nivoi[nivo]} na poziciji ${j}`);
+                    log(nivoi);
+                    prosliNivo[nivo].push(j);
+                    log(`Dodajem ${j} nizu proslog nivoa ${prosliNivo[nivo]}`);
+                }
+                procesuirani.push(prosliNivo[nivo - 1][i]);
+                log(`Dodajem ${prosliNivo[nivo - 1][i]} nizu procesuiranih cvorova [${procesuirani}]`);
+            }
+        }
+        traziNaNivou(++maxNivo)
+    }
+
+    console.log(traziNaNivou(0));
 
 }
