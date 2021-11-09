@@ -1,3 +1,11 @@
+let rjesenje = {};
+let steps = [];
+let cilj;
+let step = 0;
+let marked = [];
+let solution = 0;
+let found = false;
+
 
 // Generisi matricu susjedstava iz niza objekata
 // [
@@ -9,14 +17,6 @@
 //     .
 //     .
 // ]
-
-function log(str) {
-    let logging = true;
-    if (logging) {
-        console.log(JSON.parse(JSON.stringify(str)));
-    }
-}
-
 function formatData(edges) {
     let newArr = new Array();
     let nodeNumber = parseInt(document.querySelector("#generate").value);
@@ -41,7 +41,13 @@ function formatData(edges) {
     return newArr
 }
 
-
+// Markiranje i demarkiranje grana i cvorova
+const markGraph = (from, to, markType) => {
+    let edge = edges.find((e) => ((e.from == from) && (e.to == to)) || ((e.from == to) && (e.to == from)));
+    graphEdges.update({ id: edge.from + "-" + edge.to, color: { color: markType ? 'red' : '#848484'}, width: markType ? 3 : 1})
+    graphNodes.update({ id: from, color: { background: markType ? 'red' : "#97C2FC"} })
+    graphNodes.update({ id: to, color: { background: markType ? 'red' : "#97C2FC"} })
+}
 
 // Funkcija za generisanje nasumicnog grafika
 function draw() {
@@ -64,7 +70,7 @@ function draw() {
             if (edges.find(({ from, to }) => ((from == i) && (to == direction)) || ((from == direction) && (to == i)))) {
                 continue;
             }
-            edges[temp] = { from: i, to: direction, label: Math.ceil(Math.random() * 10).toString() };
+            edges[temp] = { id: i + "-" + direction, from: i, to: direction, label: Math.ceil(Math.random() * 10).toString() };
             temp++;
         }
     }
@@ -85,80 +91,166 @@ function draw() {
     network = new vis.Network(container, data, options);
 }
 
-
-
+// Funkcija za formiranje pretrage po nivoima
 function path() {
 
-    //Oznaci cvor sa id-jem
-    const markNode = (id) => {
-        graphNodes.update({ id: id, color: { background: "red" } })
-    }
-
-    //Oznaci granu izmedju dva cvora
-    const markEdge = (from, to) => {
-        let edge = edges.find((e) => ((e.from == from) && (e.to == to)) || ((e.from == to) && (e.to == from)));
-        graphEdges.update({ from: edge.from, to: edge.to, color: { color: "red" } })
-        graphEdges.update({ from: edge.from, to: edge.to, width: 3 })
-        // graphEdges.update({from: to, to: from, color: "red"})
-        // graphEdges.update({from: to, to: from, width: 3})
-    }
-
-    //Ukloni oznaku sa cvora sa id-jem;
-    const unmarkAll = (id) => {
-        graphNodes.update({ id: id, color: { background: "#97C2FC" } })
-    }
-
-    const cilj = parseInt(document.getElementById("end").value) || document.querySelector("#generate").value - 1;
-    const start = parseInt(document.getElementById("start").value) || 0;
     const problem = formatData(edges);
+    let start = parseInt(document.getElementById("start").value);
+    let dubina = parseInt(document.getElementById("depth").value) || 2;
 
-    console.log(problem);
-
-    const traziNaNivou = (maxNivo) => {
-        let prosliNivo = [[]];
-        let nivoi = {0: {}};
-        let procesuirani = [];
-        for (let i = 0; i < problem[0].length; i++) {
-            if (!problem[0][i]) {
-                continue;
-            }
-            nivoi[0][i] = problem[0][i];
-            prosliNivo[0].push(i);
+    const formatSteps = () => {
+        levels = Object.keys(rjesenje);
+        steps = [];
+        for (let i = 0; i < levels.length; i++) {
+            temp = rjesenje[levels[i]].map(e => {
+                return Object.keys(e)[0]
+            })
+            steps = [...steps, ...temp];
         }
-        procesuirani.push(0);
-        log(`prosliNivo su: ${prosliNivo}`);
-        log("Stanje nivoa:");
-        log(nivoi);
-        for (let nivo = 1; nivo < maxNivo; nivo++) {
-            log(`Na nivou: ${nivo}`);
-            nivoi[nivo] = {};
-            log(`Iteriram kroz prosli nivo: ${prosliNivo[nivo - 1]}`);
-            prosliNivo[nivo] = [];
-            if (nivo == problem.length) {
-                return nivoi;
-            }
-            for (let i = 0; i < prosliNivo[nivo - 1].length; i++) {
-                log(`Iteriram kroz matricu susjedstva na indeksu ${prosliNivo[nivo - 1][i]} : ${problem[prosliNivo[nivo - 1][i]]}`);
-                for (let j = 0; j < problem[prosliNivo[nivo - 1][i]].length; j++) {
-                    log(`Da li je 0 == ${problem[prosliNivo[nivo - 1][i]][j]} ili niz[${procesuirani}] sadrzi element ${j}`);
-                    if (!problem[prosliNivo[nivo - 1][i]][j] || procesuirani.includes(j)) {
-                        log(`Da`);
-                        continue;
-                    }
-                    nivoi[nivo][j] = problem[prosliNivo[nivo - 1][i]][j];
-                    log(`Ne`);
-                    log(`Dodajem ${problem[prosliNivo[nivo - 1][i]][j]} u objekat nivoa ${nivoi[nivo]} na poziciji ${j}`);
-                    log(nivoi);
-                    prosliNivo[nivo].push(j);
-                    log(`Dodajem ${j} nizu proslog nivoa ${prosliNivo[nivo]}`);
-                }
-                procesuirani.push(prosliNivo[nivo - 1][i]);
-                log(`Dodajem ${prosliNivo[nivo - 1][i]} nizu procesuiranih cvorova [${procesuirani}]`);
+
+        let insertClear = [];
+        for (let i = 0; i < steps.length; i++) {
+            if (steps[i] == start) {
+                insertClear.push(i);
             }
         }
-        traziNaNivou(++maxNivo)
+        insertClear.reverse();
+        insertClear.forEach(e => {
+            steps.splice(e, 0, 'clear');
+        })
+        return steps;
     }
 
-    console.log(traziNaNivou(0));
+    const djeca = (cvor, dubina, parent) => {
 
+        const log = (str) => {
+            let logging = false;
+            if (logging) {
+                console.log(JSON.parse(JSON.stringify(str)));
+            }
+        }
+
+        log(`Pozvana funkcija djeca: djeca(${cvor}, ${dubina})`);
+        let res = [];
+
+        if (dubina != 0) {
+
+            for (let i = 0; i < problem[cvor].length; i++) {
+
+                log(`Da li postoji prelaz na cvor ${i}? ${problem[cvor][i] != 0}`);
+                if (problem[cvor][i] != 0) {
+                    log(`Da li je parent(${parent}) razlicit od cvora(${i}) na koji imamo prelaz? ${parent != i}`)
+                }
+                if (problem[cvor][i] != 0 && parent != i) {
+                    log(`Cvor ${i} zadovoljava, i ubacujemo ga u niz rezultata`);
+                    temp = {};
+                    temp[`${cvor}-${i}`] = problem[cvor][i];
+                    res.push(temp);
+
+                    if (dubina - 1 > 0) {
+                        log(`Da li je sledeca dubina(${dubina - 1}) kraj? ${dubina - 1 > 0}`);
+                        log(`Poziva se funkcija djeca sa parametrima: djeca(${i}, ${dubina - 1}, ${cvor})`)
+                        temp = djeca(i, dubina - 1, cvor);
+                        res.push(...temp);
+                        log(res);
+                    }
+
+                }
+            }
+
+        }
+        log(`Funkcija zavrsena sa rezultatom: ${res}`)
+        return res;
+    }
+
+
+    for (let i = 0; true; i++) {
+
+        //Kreiraj prazan niz na nivou [i]
+        //Dodijeli mu tezinu 0 za pocetni cvor
+        rjesenje[i] = [];
+        temp = {};
+        temp[start] = 0;
+        rjesenje[i].push(temp);
+        temp = djeca(start, i, start);
+        rjesenje[i] = [...rjesenje[i], ...temp];
+
+        if (i == dubina) {
+            console.log(rjesenje);
+            steps = [...formatSteps()];
+            return;
+        }
+        continue;
+
+    }
+
+    /*
+    {
+        0: {2: 0},
+        1: {2: 0, 2-1: 3, 2-6: 4},
+        2: {2: 0, 2-1: 3, 2-1-0: 5, 2-1-3: 2, 2-1-4: 1, 2-1-6: 6, 2-6: 4, 2-6-0: 8, 2-6-1: 6, 2-6-3: 8, 2-6-4: 8, 2-6-5: 9 }
+    }
+    */
+}
+
+// Procesuiraj step
+const process = (id) => {
+
+    if (id == 'clear') {
+        unmark()
+        return;
+    }
+    solution++;
+    let nodes = id.split('-');
+    if (nodes.includes('' + cilj)) {
+        found = true;
+    }
+    marked.push(id);
+    if (nodes.length == 2) {
+        markGraph(parseInt(nodes[0]), parseInt(nodes[1]), true)
+    } else {
+        graphNodes.update({ id: parseInt(nodes[0]), color: { background: "red" } })
+    }
+}
+
+// Ukloni oznaku
+const unmark = () => {
+    let nodes;
+    for (let i = 0; i < marked.length; i++) {
+        nodes = marked[i].split('-');
+        if(nodes.length == 2){
+            markGraph(parseInt(nodes[0]), parseInt(nodes[1]), false)
+        } else {
+            graphNodes.update({ id: parseInt(nodes[0]), color: { background: "#97C2FC" } })
+        }
+    }
+    marked = [];
+}
+
+// Na klik odradi sledeci korak
+function next() {
+    cilj = parseInt(document.getElementById("end").value);
+    if (found) {
+        Swal.fire(
+            'Found',
+            `Solution found on step:${step}`,
+            'success'
+        ).then(() => {
+            step = 0;
+            solution = 0;
+            found = false;
+            unmark();
+            marked = [];
+        })
+        return;
+    }
+    if (!steps[step]) {
+        Swal.fire(
+            'Not found',
+            `Solution not found!`,
+            'error'
+        )
+    }
+    process(steps[step]);
+    step++;
 }
