@@ -265,9 +265,14 @@ function next() {                               // Funkcija za prikazivanje sled
     if (!steps[step]) {                         // U koliko dodjemo do kraja niza koraka
         Swal.fire(
             'Not found',
-            `Mapa nije generisana!`,
+            `Cilj nije pronadjen!`,
             'error'
-        );
+        ).then(() => {      // Restartovanje grafika
+            step = 0;
+            found = false;
+            marked.forEach(element => { markGraph(element.split('-'), false) })
+            marked = [];
+        });
         return;
     }
     document.querySelector('.target-div').textContent = steps[step];    // Prikazivanje koraka korisniku
