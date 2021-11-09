@@ -14,6 +14,14 @@ function draw() {                               // Funkcija za generisanje nasum
     }
 
     let brojTacaka = document.querySelector("#generate").value;
+    if (!brojTacaka) {
+        Swal.fire(
+            'Error',
+            `Morate unijeti broj tacaka!`,
+            'error'
+        );
+    }
+
     let nodes = new Array();
     edges = new Array();
     let temp = 0;
@@ -45,6 +53,14 @@ function draw() {                               // Funkcija za generisanje nasum
 }
 
 function path() {                               // Funkcija za formiranje mape pretrage, poyiva se na dugme "Find path"
+
+    if (!edges) {
+        Swal.fire(
+            'Error',
+            `Grafik nije generisan!`,
+            'error'
+        );
+    }
 
     const formatData = (edges) => {                    // Pomocna funkcija, za generisanje matrice susjedstava iz niza grana
         // Struktura niza grana:
@@ -98,7 +114,21 @@ function path() {                               // Funkcija za formiranje mape p
 
     const problem = formatData(edges);
     let start = parseInt(document.getElementById("start").value);
+    if (!start && start != 0) {
+        Swal.fire(
+            'Error',
+            `Morate unijeti start!`,
+            'error'
+        );
+    }
     let dubina = parseInt(document.getElementById("depth").value);
+    if (!dubina) {
+        Swal.fire(
+            'Error',
+            `Morate unijeti dubinu pretrage!`,
+            'error'
+        );
+    }
 
     const djeca = (cvor, dubina, parent) => {       // Funkcija koja za proslijedjeni cvor, dubinu i parent vrace niz objekata,
 
@@ -199,7 +229,15 @@ function next() {                               // Funkcija za prikazivanje sled
     }
 
     let cilj = parseInt(document.getElementById("end").value);
-    
+
+    if (!cilj && cilj != 0) {
+        Swal.fire(
+            'Error',
+            `Morate unijeti cilj!`,
+            'error'
+        );
+    }
+
     if (found) {                                // U koliko je rjesenje pronadjeno
 
         step = steps.filter(e => e != 'clear')      // Uklanjanje clear stringova iz niza koraka
@@ -227,7 +265,7 @@ function next() {                               // Funkcija za prikazivanje sled
     if (!steps[step]) {                         // U koliko dodjemo do kraja niza koraka
         Swal.fire(
             'Not found',
-            `Solution not found!`,
+            `Mapa nije generisana!`,
             'error'
         );
         return;
