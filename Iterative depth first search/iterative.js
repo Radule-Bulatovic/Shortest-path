@@ -1,32 +1,20 @@
-let rjesenje = {};
+let mapa = {};
 let steps = [];
-let cilj;
 let step = 0;
 let marked = [];
-let solution = 0;
 let found = false;
 
+function formatData(edges) {                    // Generisi matricu susjedstava iz niza objekata
 
-// Generisi matricu susjedstava iz niza objekata
-// [
-//     { from: 0, to: 3, label: '1', id: '6074ed12-ee13-42df-ab48-291edc9c600a' },
-//     { from: 0, to: 9, label: '6', id: 'f87cd441-6cb4-4845-b0c9-e3915061bd78' },
-//     { from: 1, to: 2, label: '6', id: '2f7b7058-e934-4b00-8a02-16af73d52929' },
-//     { from: 1, to: 6, label: '5', id: '7e8d659c-eefe-4497-879e-a1393a3a409c' }
-//     .
-//     .
-//     .
-// ]
-function formatData(edges) {
-    let newArr = new Array();
-    let nodeNumber = parseInt(document.querySelector("#generate").value);
-    for (let i = 0; i < nodeNumber; i++) {
-        let temp = edges.filter((e) => e.from == i);
-        newArr[i] = new Array(nodeNumber);
-        newArr[i].fill(0, 0, nodeNumber);
-        for (let j = 0; j < temp.length; j++) {
-            newArr[i][temp[j].to] = parseInt(temp[j].label);
-        }
+    let newArr = new Array();                                               // [
+    let nodeNumber = parseInt(document.querySelector("#generate").value);   //     { from: 0, to: 3, label: '1', id: '6074ed12-ee13-42df-ab48-291edc9c600a' },
+    for (let i = 0; i < nodeNumber; i++) {                                  //     { from: 0, to: 9, label: '6', id: 'f87cd441-6cb4-4845-b0c9-e3915061bd78' },
+        let temp = edges.filter((e) => e.from == i);                        //     { from: 1, to: 2, label: '6', id: '2f7b7058-e934-4b00-8a02-16af73d52929' },
+        newArr[i] = new Array(nodeNumber);                                  //     { from: 1, to: 6, label: '5', id: '7e8d659c-eefe-4497-879e-a1393a3a409c' }
+        newArr[i].fill(0, 0, nodeNumber);                                   //     .
+        for (let j = 0; j < temp.length; j++) {                             //     .
+            newArr[i][temp[j].to] = parseInt(temp[j].label);                //     .
+        }                                                                   // ]
     }
     for (let i = 0; i < nodeNumber; i++) {
         for (let j = 0; j < nodeNumber; j++) {
@@ -41,19 +29,20 @@ function formatData(edges) {
     return newArr
 }
 
-// Markiranje i demarkiranje grana i cvorova
-const markGraph = (from, to, markType) => {
-    let edge = edges.find((e) => ((e.from == from) && (e.to == to)) || ((e.from == to) && (e.to == from)));
-    graphEdges.update({ id: edge.from + "-" + edge.to, color: { color: markType ? 'red' : '#848484'}, width: markType ? 3 : 1})
-    graphNodes.update({ id: from, color: { background: markType ? 'red' : "#97C2FC"} })
-    graphNodes.update({ id: to, color: { background: markType ? 'red' : "#97C2FC"} })
+const markGraph = (nodes, markType) => {        // Markiranje i demarkiranje grana i cvorova
+
+    if (nodes.length == 2) {
+        let edge = edges.find((e) => ((e.from == parseInt(nodes[1])) && (e.to == parseInt(nodes[0]))) || ((e.from == parseInt(nodes[0])) && (e.to == parseInt(nodes[1]))));
+        graphEdges.update({ id: edge.from + "-" + edge.to, color: { color: markType ? 'red' : '#848484' }, width: markType ? 3 : 1 })
+        graphNodes.update({ id: parseInt(nodes[1]), color: { background: markType ? 'red' : "#97C2FC" } })
+        graphNodes.update({ id: parseInt(nodes[0]), color: { background: markType ? 'red' : "#97C2FC" } })
+    }
+    graphNodes.update({ id: parseInt(nodes[0]), color: { background: markType ? 'red' : "#97C2FC" } })
 }
 
-// Funkcija za generisanje nasumicnog grafika
-function draw() {
+function draw() {                               // Funkcija za generisanje nasumicnog grafika
 
-    // Generisanje nasumicnog broja u odredjenom opsegu
-    const between = (min, max) => {
+    const between = (min, max) => {             // Generisanje nasumicnog broja u odredjenom opsegu
         return Math.floor(
             Math.random() * (max - min + 1) + min
         )
@@ -75,8 +64,7 @@ function draw() {
         }
     }
 
-    // Prikazivanje grafika
-    graphNodes = new vis.DataSet(nodes);
+    graphNodes = new vis.DataSet(nodes);                    // Prikazivanje grafika
     graphEdges = new vis.DataSet(edges);
     let container = document.getElementById("mynetwork");
     let data = {
@@ -91,24 +79,24 @@ function draw() {
     network = new vis.Network(container, data, options);
 }
 
-// Funkcija za formiranje pretrage po nivoima
-function path() {
+function path() {                               // Funkcija za formiranje pretrage po nivoima
 
     const problem = formatData(edges);
     let start = parseInt(document.getElementById("start").value);
-    let dubina = parseInt(document.getElementById("depth").value) || 2;
+    let dubina = parseInt(document.getElementById("depth").value);
 
-    const formatSteps = () => {
-        levels = Object.keys(rjesenje);
+    const formatSteps = () => {                         // Kreiranje niza koraka koji ce se prikazivati na grafiku
+
+        levels = Object.keys(mapa);
         steps = [];
         for (let i = 0; i < levels.length; i++) {
-            temp = rjesenje[levels[i]].map(e => {
+            temp = mapa[levels[i]].map(e => {
                 return Object.keys(e)[0]
             })
-            steps = [...steps, ...temp];
+            steps = [...steps, ...temp];                // primjer = [ 0, 0, 0-1, 0-2, 0, 0-1, 1-3, 1-4, 0-2, 2-3, 2-5, 0, ....]
         }
 
-        let insertClear = [];
+        let insertClear = [];                           // Umetanje stringa clear prije svakog pocetnog cvora
         for (let i = 0; i < steps.length; i++) {
             if (steps[i] == start) {
                 insertClear.push(i);
@@ -118,37 +106,39 @@ function path() {
         insertClear.forEach(e => {
             steps.splice(e, 0, 'clear');
         })
-        return steps;
+        return steps;                                   // primjer = [ clear, 0, clear, 0, 0-1, 0-2, clear, 0, 0-1, 1-3, 1-4, 0-2, 2-3, 2-5, clear, 0, ....]
     }
 
-    const djeca = (cvor, dubina, parent) => {
+    const djeca = (cvor, dubina, parent) => {       // Funkcija koja za proslijedjeni cvor, dubinu i parent vrace niz objekata,
 
-        const log = (str) => {
+        const log = (str) => {                      // Pomocna funkcija za logovanje, za prikaz poruka u konzoli postaviti logging na true                    
             let logging = false;
             if (logging) {
                 console.log(JSON.parse(JSON.stringify(str)));
             }
         }
 
-        log(`Pozvana funkcija djeca: djeca(${cvor}, ${dubina})`);
-        let res = [];
+        log(`Pozvana funkcija djeca: djeca(${cvor}, ${dubina}, ${parent})`);
+        let res = [];       // Niz u kojem cemo smjestati rezultate
 
-        if (dubina != 0) {
+        if (dubina != 0) {  // Dubina se iterativno smanjuje i na kraju ce biti 0
 
-            for (let i = 0; i < problem[cvor].length; i++) {
+            for (let i = 0; i < problem[cvor].length; i++) {        // Iteriranje kroz matricu prelaza za cvor proslijedjen kao parametar
 
                 log(`Da li postoji prelaz na cvor ${i}? ${problem[cvor][i] != 0}`);
                 if (problem[cvor][i] != 0) {
                     log(`Da li je parent(${parent}) razlicit od cvora(${i}) na koji imamo prelaz? ${parent != i}`)
                 }
-                if (problem[cvor][i] != 0 && parent != i) {
-                    log(`Cvor ${i} zadovoljava, i ubacujemo ga u niz rezultata`);
+
+                if (problem[cvor][i] != 0 && parent != i) {         // Ispitivanje da li postoji prelaz na cvor [i], i da li je [i] parent trenutnom cvoru
+
+                    log(`Cvor ${i} zadovoljava uslove, i ubacujemo ga u niz rezultata`);
                     temp = {};
                     temp[`${cvor}-${i}`] = problem[cvor][i];
                     res.push(temp);
 
+                    log(`Da li je sledeca dubina(${dubina - 1}) kraj? ${dubina - 1 > 0}`);
                     if (dubina - 1 > 0) {
-                        log(`Da li je sledeca dubina(${dubina - 1}) kraj? ${dubina - 1 > 0}`);
                         log(`Poziva se funkcija djeca sa parametrima: djeca(${i}, ${dubina - 1}, ${cvor})`)
                         temp = djeca(i, dubina - 1, cvor);
                         res.push(...temp);
@@ -163,94 +153,91 @@ function path() {
         return res;
     }
 
+    for (let i = 0; true; i++) {            // Beskonacna petlja
 
-    for (let i = 0; true; i++) {
+        mapa[i] = [];                       //Kreiraj prazan niz za nivo [i]
 
-        //Kreiraj prazan niz na nivou [i]
-        //Dodijeli mu tezinu 0 za pocetni cvor
-        rjesenje[i] = [];
-        temp = {};
+        temp = {};                          //Dodijeli mu tezinu 0 za pocetni cvor
         temp[start] = 0;
-        rjesenje[i].push(temp);
-        temp = djeca(start, i, start);
-        rjesenje[i] = [...rjesenje[i], ...temp];
+        mapa[i].push(temp);
 
-        if (i == dubina) {
-            console.log(rjesenje);
+        temp = djeca(start, i, start);      // Pronalazenje cvorova do kojih se moze doci iz starta, koristeci dubinu [i]
+        mapa[i] = [...mapa[i], ...temp];    // Nadovezi djecu u niz rjesenja za nivo [i]
+
+        if (i == dubina) {                  // Slucaj kojim se prekida izvrsavanje petlje
+            console.log(mapa);
             steps = [...formatSteps()];
             return;
         }
         continue;
-
-    }
-
-    /*
-    {
-        0: {2: 0},
-        1: {2: 0, 2-1: 3, 2-6: 4},
-        2: {2: 0, 2-1: 3, 2-1-0: 5, 2-1-3: 2, 2-1-4: 1, 2-1-6: 6, 2-6: 4, 2-6-0: 8, 2-6-1: 6, 2-6-3: 8, 2-6-4: 8, 2-6-5: 9 }
-    }
-    */
-}
-
-// Procesuiraj step
-const process = (id) => {
-
-    if (id == 'clear') {
-        unmark()
-        return;
-    }
-    solution++;
-    let nodes = id.split('-');
-    if (nodes.includes('' + cilj)) {
-        found = true;
-    }
-    marked.push(id);
-    if (nodes.length == 2) {
-        markGraph(parseInt(nodes[0]), parseInt(nodes[1]), true)
-    } else {
-        graphNodes.update({ id: parseInt(nodes[0]), color: { background: "red" } })
+        // Struktura mape
+        // mapa = {
+        //     "0": [ {"3": 0} ],
+        //     "1": [ {"3": 0}, {"3-0": 1}, {"3-2": 4}, {"3-5": 9}, {"3-7": 9} ],
+        //     "2": [ {"3": 0}, {"3-0": 1}, {"0-1": 9}, {"0-6": 9}, {"0-7": 4}, {"0-9": 3}, {"3-2": 4}, ... ],
+        //     "3": [ {"3": 0}, {"3-0": 1}, {"0-1": 9}, {"1-2": 6}, {"1-4": 4} ... ],
+        // }
     }
 }
 
-// Ukloni oznaku
-const unmark = () => {
+const unmark = () => {                          // Ukloni sve oznake sa elemenata koji se nalaze u nizu [marked]
     let nodes;
     for (let i = 0; i < marked.length; i++) {
         nodes = marked[i].split('-');
-        if(nodes.length == 2){
-            markGraph(parseInt(nodes[0]), parseInt(nodes[1]), false)
-        } else {
-            graphNodes.update({ id: parseInt(nodes[0]), color: { background: "#97C2FC" } })
-        }
+        markGraph(nodes, false);
     }
     marked = [];
 }
 
-// Na klik odradi sledeci korak
-function next() {
-    cilj = parseInt(document.getElementById("end").value);
+function next() {                               // Na klik odradi sledeci korak
+
+    const process = (id) => {   // Procesuiraj step
+
+        if (id == 'clear') {    // Uklanjanje oznake ako je to sledeci korak
+            unmark()
+            return;
+        }
+
+        let nodes = id.split('-');
+        if (nodes.includes('' + cilj)) {    // U koliko grana vodi do cilja
+            found = true;
+        }
+
+        marked.push(id);    // Dodaj u niz oznacenih elemenata
+        markGraph(nodes, true);
+    }
+
+    let cilj = parseInt(document.getElementById("end").value);
     if (found) {
-        Swal.fire(
+
+        step = steps.filter(e => e != 'clear')      // Uklanjanje clear stringova iz niza koraka
+        for (let i = 0; i < step.length; i++) {
+            if(step[i].split('-').includes('' + cilj)){     // Pronalazenje indeksa koraka koji vodi do cilja
+                step = i + 1;
+                break;
+            }
+        }
+
+        Swal.fire(      // Prikaz poruke
             'Found',
             `Solution found on step:${step}`,
             'success'
-        ).then(() => {
+        ).then(() => {      // Restartovanje grafika
             step = 0;
-            solution = 0;
             found = false;
             unmark();
             marked = [];
         })
         return;
     }
-    if (!steps[step]) {
+    if (!steps[step]) {     // U koliko dodjemo do kraja niza koraka
         Swal.fire(
             'Not found',
             `Solution not found!`,
             'error'
         )
     }
+    document.querySelector('.target-div').textContent = steps[step];    // Prikazivanje koraka korisniku
     process(steps[step]);
     step++;
 }
