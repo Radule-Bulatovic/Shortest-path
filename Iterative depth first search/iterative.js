@@ -112,6 +112,7 @@ function path() {                               // Funkcija za formiranje mape p
         return steps;                                   // Struktura koraka = [ clear, 0, clear, 0, 0-1, 0-2, clear, 0, 0-1, 1-3, 1-4, 0-2, 2-3, 2-5, clear, 0, ....]
     }
 
+    let procesuirani = [];
     const problem = formatData(edges);
     let start = parseInt(document.getElementById("start").value);
     if (!start && start != 0) {
@@ -130,7 +131,7 @@ function path() {                               // Funkcija za formiranje mape p
         );
     }
 
-    const djeca = (cvor, dubina, parent) => {       // Funkcija koja za proslijedjeni cvor, dubinu i parent vrace niz objekata,
+    const djeca = (cvor, dubina, procesuirani) => {       // Funkcija koja za proslijedjeni cvor, dubinu i parent vrace niz objekata,
 
         const log = (str) => {                      // Pomocna funkcija za logovanje, za prikaz poruka u konzoli postaviti logging na true                    
             let logging = false;
@@ -148,20 +149,22 @@ function path() {                               // Funkcija za formiranje mape p
 
                 log(`Da li postoji prelaz na cvor ${i}? ${problem[cvor][i] != 0}`);
                 if (problem[cvor][i] != 0) {
-                    log(`Da li je parent(${parent}) razlicit od cvora(${i}) na koji imamo prelaz? ${parent != i}`)
+                    log(`Da li se cvora(${i}) nalazi u nizu procesuiranih cvorava(${procesuirani}):  ${procesuirani.includes(i)}`)
                 }
 
-                if (problem[cvor][i] != 0 && parent != i) {         // Ispitivanje da li postoji prelaz na cvor [i], i da li je [i] parent trenutnom cvoru
+                if (problem[cvor][i] != 0 && !procesuirani.includes(i) ) {         // Ispitivanje da li postoji prelaz na cvor [i], i da li je [i] vec procesuiran
 
                     log(`Cvor ${i} zadovoljava uslove, i ubacujemo ga u niz rezultata`);
                     temp = {};
                     temp[`${cvor}-${i}`] = problem[cvor][i];
                     res.push(temp);
+                    procesuirani.push(i);
+
 
                     log(`Da li je sledeca dubina(${dubina - 1}) kraj? ${dubina - 1 > 0}`);
                     if (dubina - 1 > 0) {
-                        log(`Poziva se funkcija djeca sa parametrima: djeca(${i}, ${dubina - 1}, ${cvor})`)
-                        temp = djeca(i, dubina - 1, cvor);
+                        log(`Poziva se funkcija djeca sa parametrima: djeca(${i}, ${dubina - 1}, ${procesuirani})`)
+                        temp = djeca(i, dubina - 1, procesuirani);
                         res.push(...temp);
                         log(res);
                     }
@@ -175,14 +178,14 @@ function path() {                               // Funkcija za formiranje mape p
     }
 
     for (let i = 0; true; i++) {            // Beskonacna petlja
-
+        procesuirani = [start];
         mapa[i] = [];                       //Kreiraj prazan niz za nivo [i]
 
         temp = {};                          //Dodijeli mu tezinu 0 za pocetni cvor
         temp[start] = 0;
         mapa[i].push(temp);
 
-        temp = djeca(start, i, start);      // Pronalazenje cvorova do kojih se moze doci iz starta, koristeci dubinu [i]
+        temp = djeca(start, i, procesuirani);      // Pronalazenje cvorova do kojih se moze doci iz starta, koristeci dubinu [i]
         mapa[i] = [...mapa[i], ...temp];    // Nadovezi djecu u niz rjesenja za nivo [i]
 
         if (i == dubina) {                  // Slucaj kojim se prekida izvrsavanje petlje
