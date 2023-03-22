@@ -1,0 +1,74 @@
+* {
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  background-color: darkslategray;
+  font-family: "Courier New", Courier, monospace;
+}
+
+.container {
+  width: 80%;
+  display: flex;
+  justify-content: space-evenly;
+  text-align: center;
+}
+
+.info {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  flex-direction: column;
+  color: white;
+}
+
+button {
+  padding: 1rem 2rem;
+  box-shadow: 0 0 1px 1px white;
+  background-color: transparent;
+  border-radius: 0.5rem;
+  border: 0;
+  color: white;
+  font-size: large;
+  font-weight: 800;
+}
+
+button:hover {
+  box-shadow: 0 0 5px 5px white;
+  transition: box-shadow 500ms ease;
+}
+
+.chess {
+  height: 30rem;
+  width: 30rem;
+  display: grid;
+  background-color: white;
+  grid-template-columns: repeat(8, 1fr);
+}
+
+.row {
+  display: grid;
+  grid-template-rows: repeat(8, 1fr);
+}
+
+.field {
+  position: relative;
+  font-size: 3rem;
+  border: 1px solid black;
+  display: grid;
+  place-items: center;
+}
+
+.row:nth-child(2n) .field:nth-of-type(2n) {
+  background-color: black;
+  color: white;
+}
+
+.row:nth-child(2n + 1) .field:nth-of-type(2n + 1) {
+  background-color: black;
+  color: white;
+}
