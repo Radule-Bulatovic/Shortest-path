@@ -14,8 +14,10 @@ body {
 .container {
   width: 80%;
   display: flex;
+  gap: 3rem;
+  flex-direction: column-reverse;
   justify-content: space-evenly;
-  text-align: center;
+  align-items: center;
 }
 
 .info {
@@ -43,8 +45,9 @@ button:hover {
 }
 
 .chess {
-  height: 30rem;
-  width: 30rem;
+  --x: 20rem;
+  height: var(--x);
+  width: var(--x);
   display: grid;
   background-color: white;
   grid-template-columns: repeat(8, 1fr);
@@ -57,7 +60,7 @@ button:hover {
 
 .field {
   position: relative;
-  font-size: 3rem;
+  font-size: 1.5rem;
   border: 1px solid black;
   display: grid;
   place-items: center;
@@ -71,4 +74,13 @@ button:hover {
 .row:nth-child(2n + 1) .field:nth-of-type(2n + 1) {
   background-color: black;
   color: white;
+}
+
+@media screen and (min-width: 480px) {
+  .chess {
+    --x: 25rem;
+  }
+  .field {
+    font-size: 2rem;
+  }
 }
